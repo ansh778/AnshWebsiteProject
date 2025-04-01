@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #0a0a0a;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 60%;
+            margin: auto;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #00f7ff;
+            margin: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            opacity: 0.9;
+            transition: 0.3s;
+        }
+
+        .card.flipped {
+            background-color: #ff6f61;
+        }
+
+        .card.matched {
+            background-color: #a1ff64;
+        }
+
+        .info {
+            margin: 20px;
+            font-size: 1.5rem;
+        }
+
+        .game-over {
+            margin-top: 20px;
+            font-size: 2rem;
+            color: yellow;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="info">
+        <h2>Welcome to the Memory Game!</h2>
+        <p id="userInfo"></p>
+    </div>
+
+    <div class="game-container" id="gameContainer"></div>
+    <div id="gameOverMessage" class="game-over"></div>
+
+    <script>
+        // Retrieve user data from localStorage
+        const userData = JSON.parse(localStorage.getItem("userData"));
+
+        if (!userData) {
+            document.getElementById("userInfo").innerText = "Sorry, no user data found. Please go back and enter your details.";
+        } else {
+            document.getElementById("userInfo").innerText = `Hello ${userData.name}, let's play the game!`;
+        }
+
+        // Memory game logic
+        const cardValues = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        const shuffledCards = [...cardValues, ...cardValues].sort(() => 0.5 - Math.random());
+
+        let flippedCards = [];
+        let matchedCards = [];
+        let gameOver = false;
+
+        const gameContainer = document.getElementById("gameContainer");
+
+        shuffledCards.forEach((value, index) => {
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.setAttribute("data-value", value);
+            card.addEventListener("click", flipCard);
+            gameContainer.appendChild(card);
+        });
+
+        function flipCard(event) {
+            if (gameOver) return;
+
+            const card = event.target;
+
+            if (flippedCards.length === 2 || card.classList.contains("flipped") || matchedCards.includes(card)) {
+                return;
+            }
+
+            card.classList.add("flipped");
+            card.innerText = card.getAttribute("data-value");
+
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.getAttribute("data-value") === card2.getAttribute("data-value")) {
+                card1.classList.add("matched");
+                card2.classList.add("matched");
+                matchedCards.push(card1, card2);
+                flippedCards = [];
+
+                if (matchedCards.length === shuffledCards.length) {
+                    gameOver = true;
+                    document.getElementById("gameOverMessage").innerText = "Congratulations, You've Matched All Cards!";
+                }
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove("flipped");
+                    card2.classList.remove("flipped");
+                    card1.innerText = '';
+                    card2.innerText = '';
+                    flippedCards = [];
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
